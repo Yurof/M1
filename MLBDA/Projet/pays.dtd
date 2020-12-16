@@ -1,5 +1,0 @@
-<!ELEMENT document (pays*)>
-<!ELEMENT pays (nom, code, montagne*)>
-<!ELEMENT nom (#PCDATA)>
-<!ELEMENT code (#PCDATA)>
-<!ELEMENT montagne (nom)>

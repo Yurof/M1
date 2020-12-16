@@ -1,6 +1,11 @@
+create or replace type T_Mondial as object(
+   NBCOUNTRY number,
+   member function toXML return XMLType
+)
+/
 create or replace type T_Coordonnee as object(
-   latitude NUMBER,
-   longitude NUMBER,
+   LATITUDE NUMBER,
+   LONGITUDE NUMBER,
    member function toXML return XMLType
 )
 /
@@ -15,14 +20,12 @@ create or replace type T_Pays as object(
 )
 /
 create or replace type T_Province as object(
-   NAME        VARCHAR2(35 Byte),
+   NAMEP        VARCHAR2(35 Byte),
    COUNTRY     VARCHAR2(4 Byte),
    POPULATION  NUMBER,
    AREA        NUMBER,
    CAPITAL     VARCHAR2(35 Byte),
    CAPPROV     VARCHAR2(35 Byte),
-   INMOUNTAIN  VARCHAR2(35 Byte),
-   INISLAND    VARCHAR2(35 Byte),
    member function toXML return XMLType
 )
 /
@@ -40,7 +43,8 @@ create or replace  type T_Montagne as object (
    HEIGHT       NUMBER,
    TYPE         VARCHAR2(10 Byte),
    CODEPAYS         VARCHAR2(4),
-   --COORDINATES  T_Coordonnee,
+   COORDINATES  T_Coordonnee,
+   INPROVINCE VARCHAR2(35 Byte),
    member function toXML return XMLType
 )
 /
@@ -50,7 +54,8 @@ create or replace  type T_Ile as object (
    AREA         NUMBER,
    HEIGHT       NUMBER,
    TYPE         VARCHAR2(10 Byte),
-   COORDINATES  T_Coordonnee,
+   COORDINATES  T_Coordonnee, 
+   INPROVINCE VARCHAR2(35 Byte),
    member function toXML return XMLType
 )
 /
@@ -72,6 +77,7 @@ create or replace  type T_Desert as object (
    NAME         VARCHAR2(35 Byte)  ,
    AREA         NUMBER,
    COORDINATES  T_Coordonnee,
+   INPROVINCE VARCHAR2(35 Byte),
    member function toXML return XMLType
 )
 /
@@ -86,10 +92,10 @@ create or replace type body T_Montagne as
 end;
 /
 create table LesMontagnes of T_Montagne;
-
+/
 create or replace type T_ensMontagne as table of T_Montagne;
-
---------
+/
+---------
 create or replace type body T_Desert as
  member function toXML return XMLType is
    output XMLType;
@@ -103,7 +109,7 @@ create table LesDesert of T_Desert;
 /
 create or replace type T_ensDesert as table of T_Desert;
 /
--------
+---------
 create or replace type body T_Coordonnee as
  member function toXML return XMLType is
    output XMLType;
@@ -112,10 +118,6 @@ create or replace type body T_Coordonnee as
       return output;
    end;
 end;
-/
-create table LesCoordonnee of T_Coordonnee;
-/
-create or replace type T_ensCoordonnee as table of T_Coordonnee;
 /
 ---------
 create or replace type body T_Continent as
@@ -127,16 +129,16 @@ create or replace type body T_Continent as
    end;
 end;
 /
-create table LesContinent of T_Continent;
+create table LesContinents of T_Continent;
 /
 create or replace type T_ensContinent as table of T_Continent;
 /
--------
+---------
 create or replace type body T_Aeroport as
  member function toXML return XMLType is
    output XMLType;
    begin
-      output := XMLType.createxml('<airport  name ="'||name||'" city="'||city||'"/>');
+      output := XMLType.createxml('<airport  name ="'||name||'" nearcity="'||city||'"/>');
       return output;
    end;
 end;
@@ -145,53 +147,63 @@ create table LesAeroport of T_Aeroport;
 /
 create or replace type T_ensAeroport as table of T_Aeroport;
 /
--------
+---------
 create or replace type body T_Ile as
  member function toXML return XMLType is
    output XMLType;
    begin
       output := XMLType.createxml('<island name ="'||name||'"/>');
+      output := XMLType.appendchildxml(output,'island', coordinates.toXML());   
       return output;
    end;
 end;
 /
-create table LesIle of T_Ile;
+create table LesIles of T_Ile;
 /
 create or replace type T_ensIle as table of T_Ile;
 /
-
 ------------------
 create or replace type body T_Province as
    member function toXML return XMLType is
    output XMLType;
    tmpMontagne T_ensMontagne;
    tmpIle T_ensIle;
+   tmpDesert T_ensDesert;
     begin
-    output := XMLType.createxml('<province name ="'||name||'" capital="'||capital||'"/>');
+    output := XMLType.createxml('<province name ="'||namep||'" capital="'||capital||'"/>');
     select value(m) bulk collect into tmpMontagne
     from LesMontagnes m
-    where inmountain = m.name ;  
+    where namep = m.inprovince ;  
     for indx IN 1..tmpMontagne.COUNT
     loop
       output := XMLType.appendchildxml(output,'province', tmpMontagne(indx).toXML());   
     end loop;
     
+    select value(m) bulk collect into tmpDesert
+    from LesDesert m
+    where namep = m.inprovince ;  
+    for indx IN 1..tmpDesert.COUNT
+    loop
+      output := XMLType.appendchildxml(output,'province', tmpDesert(indx).toXML());   
+    end loop;
+    
     select value(i) bulk collect into tmpIle
-    from Lesile i
-    where inisland = i.name ;  
+    from LesIles i
+    where namep = i.inprovince ;  
     for indx IN 1..tmpIle.COUNT
     loop
       output := XMLType.appendchildxml(output,'province', tmpIle(indx).toXML());   
     end loop;
-  
     return output;
    end;
 end;
 /
-create table LesProvince of T_Province;
+             
+create table LesProvinces of T_Province;
 /
 create or replace type T_ensProvince as table of T_Province;
 /
+---------
 create or replace type body T_Pays as
    member function toXML return XMLType is
    output XMLType;
@@ -202,7 +214,7 @@ create or replace type body T_Pays as
     output := XMLType.createxml('<country idcountry ="'||code||'" nom="'||name||'"/>');
     
     select value(c) bulk collect into tmpContinent
-    from LesContinent c
+    from LesContinents c
     where code = c.incountry ;  
     for indx IN 1..tmpContinent.COUNT
     loop
@@ -210,7 +222,7 @@ create or replace type body T_Pays as
     end loop;
     
     select value(p) bulk collect into tmpProvince
-    from LesProvince p
+    from LesProvinces p
     where code = p.country ;  
     for indx IN 1..tmpProvince.COUNT
     loop
@@ -228,22 +240,41 @@ create or replace type body T_Pays as
    end;
 end;
 /
-----
-
-
 create table LesPays of T_Pays;
 /
+create or replace type T_ensPays as table of T_Pays;
+/
+---------
+create or replace type body T_Mondial as
+   member function toXML return XMLType is
+   output XMLType;
+   tmpPays T_ensPays;
+   begin
+      output := XMLType.createxml('<mondial/>');
+      select value(p) bulk collect into tmpPays
+      from LesPays p
+      order by p.name asc;
+      for indx IN 1..tmpPays.COUNT
+      loop
+         output := XMLType.appendchildxml(output,'mondial', tmpPays(indx).toXML());   
+      end loop;
+      return output;
+   end;
+end;
+/
+create table MondialTable of T_Mondial;
+/
+-------------------------------------------------------------------------------------------
 insert into LesPays
   select T_Pays(c.name, c.code, c.capital, 
          c.province, c.area, c.population) 
          from COUNTRY c;
 /
-insert into LesProvince
-  select T_Province(p.name, p.country,p.population,p.area,p.capital,p.capprov,g.mountain,g2.island ) 
-         from PROVINCE p, GEO_MOUNTAIN g, GEO_ISLAND g2
-         where g.province=p.name and g2.province=p.name;      
+insert into LesProvinces
+  select T_Province(p.name, p.country,p.population,p.area,p.capital,p.capprov ) 
+         from PROVINCE p;    
 /
-insert into LesContinent 
+insert into LesContinents
    select T_Continent(c.name, c.area, e.percentage,
    e.country)
    from ENCOMPASSES e, CONTINENT c
@@ -257,21 +288,32 @@ insert into LesAeroport
   /           
 insert into LesMontagnes
   select T_Montagne(m.name, m.mountains, m.height, 
-         m.type, g.country ) 
+         m.type, g.country,T_Coordonnee(m.coordinates.latitude,m.coordinates.longitude), g.province ) 
          from MOUNTAIN m, GEO_MOUNTAIN g
          where g.MOUNTAIN=m.NAME;
 /
+insert into LesDesert
+  select T_Desert(d.name, d.area,
+                  T_Coordonnee(d.coordinates.latitude,d.coordinates.longitude), g.province ) 
+         from DESERT d, GEO_DESERT g
+         where g.DESERT=d.NAME;
+/
+insert into LesIles
+  select T_Ile(i.name, i.islands, i.area, i.height, i.type,
+                T_Coordonnee(i.coordinates.latitude,i.coordinates.longitude), g.province ) 
+         from ISLAND i, GEO_ISLAND g
+         where g.island=i.name;
+/
+insert into MondialTable Values(T_Mondial(1));
+-------------------------------------------------------------------------------------------      
 WbExport -type=text
          -file='mondial1.xml'
          -createDir=true
-         -encoding=ISO-8859-1
+         -encoding=UTF-8
          -header=false
-         -delimiter=','
+         -delimiter=' \t'
          -decimal=','
          -dateFormat='yyyy-MM-dd'
 /
-select p.toXML().getClobVal() 
-from LesPays p;
-
-
-drop table LesAeroport;
+select m.toXML().getClobVal() 
+from MondialTable m;
