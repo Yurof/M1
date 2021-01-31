@@ -1,0 +1,252 @@
+Youssef KADHI
+Richard UNG
+Groupe 4
+TME 3: Le langage prolog
+
+Exercice 3
+
+Les étudiants sérieux révisent leurs examens. 
+Un étudiant consciencieux fait toujours ses devoirs pour le lendemain.
+Les étudiants qui révisent leurs examens réussissent.
+Les étudiants qui font leurs devoirs pour le lendemain sont sérieux.
+Pascal et Zoé sont des étudiants consciencieux:
+
+1.
+    On représente les assertions précédentes de la manière suivante:
+
+    revise(X) :- serieux(X).
+    fait_devoir(X):-consciencieux(X).
+    reussir(X):-revise(X).
+    serieux(X):-fait_devoir(X).
+    consciencieux('Pascal').
+    consciencieux('Zoe').
+
+2.
+    La requête prolog qui permet de répondre à la question "qui va réussir ?" est :
+    reussir(X).
+
+3.
+    Pascal et Zoé sont consciencieux,
+    d'après fait_devoir(X):-consciencieux(X)., ils font leurs devoirs.
+    et d'après serieux(X):-fait_devoir(X)., ils sont donc sérieux.
+    et d'après revise(X) :- serieux(X)., ils révisent.
+    et enfin d'après reussir(X):-revise(X), donc Pascal et Zoé on réussi
+
+    Prolog donne bien le résultat attendu:
+    ?- reussir(X).
+        X = 'Pascal' ;
+        X = 'Zoe'.
+
+
+Exercice 4
+
+1.
+    On utilise la famille Simpson pour définir quelques types père et mère:
+    pere('Homer','Bart').
+    pere('Homer','Lisa').
+    pere('Homer','Maggie').
+    pere('Abraham','Homer').
+    mere('Marge','Bart').
+    mere('Marge','Lisa').
+    mere('Marge','Maggie').
+
+2.
+    parent(X,Y) :-pere(X,Y).
+    parent(X,Y) :-mere(X,Y).
+
+3.
+    Tests:
+    ?- parent('Homer',Y).
+        Y = 'Bart' ;
+        Y = 'Lisa' ;
+        Y = 'Maggie' ;
+
+    ?- parent('Abraham',Y).
+        Y = 'Homer' ;
+
+    ?- parent(X,'Bart').
+        X = 'Homer' ;
+        X = 'Marge'.
+
+    ?- parent(X,Y).
+        X = 'Homer', Y = 'Bart' ;
+        X = 'Homer', Y = 'Lisa' ;
+        X = 'Homer', Y = 'Maggie' ;
+        X = 'Abraham', Y = 'Homer' ;
+        X = 'Marge', Y = 'Bart' ;
+        X = 'Marge', Y = 'Lisa' ;
+        X = 'Marge', Y = 'Maggie'.
+
+4.
+    parents(X,Y,Z) :-pere(X,Z),mere(Y,Z).
+
+    Tests:
+    ?- parents(X,Y,Z).
+        X = 'Homer', Y = 'Marge', Z = 'Bart' ;
+        X = 'Homer', Y = 'Marge', Z = 'Lisa' ;
+        X = 'Homer', Y = 'Marge', Z = 'Maggie'.
+
+    ?- parents('Homer',Y,Z).
+        Y = 'Marge', Z = 'Bart' ;
+        Y = 'Marge', Z = 'Lisa' ;
+        Y = 'Marge', Z = 'Maggie'.
+
+    ?- parents('Homer','Marge',Z).
+        Z = 'Bart' ;
+        Z = 'Lisa' ;
+        Z = 'Maggie'.
+
+5.
+    grandPere(X,Z) :-pere(X,Y),parent(Y,Z).
+    frereOuSoeur(X,Y) :-parents(A,B,X),parents(A,B,Y),X\=Y.
+
+    Test:
+    ?- grandPere(X,Z).
+        X = 'Abraham', Z = 'Bart' ;
+        X = 'Abraham', Z = 'Lisa' ;
+        X = 'Abraham', Z = 'Maggie'.
+
+    ?- grandPere(X,'Bart').
+        X = 'Abraham'.
+
+    ?- frereOuSoeur(X,Y).
+        X = 'Bart', Y = 'Lisa' ;
+        X = 'Bart', Y = 'Maggie' ;
+        X = 'Lisa', Y = 'Bart' ;
+        X = 'Lisa', Y = 'Maggie' ;
+        X = 'Maggie', Y = 'Bart' ;
+        X = 'Maggie', Y = 'Lisa' .
+
+    ?- frereOuSoeur('Bart',Y).
+        Y = 'Lisa' ;
+        Y = 'Maggie'.
+
+6.
+    ancetre(X,Y) :-parent(X,Y).
+    ancetre(X,Z) :-parent(X,Y),ancetre(Y,Z).
+
+    Pour tester correctement ancetre on ajoute quelques faits:
+    pere('PereAbraham','Abraham').
+    pere('GrandPereAbraham','PereAbraham').
+    pere('GGPereAbraham','GrandPereAbraham').
+    pere('GGGPereAbraham','GGPereAbraham').
+
+    Test:
+    ?- ancetre(X,'Homer').
+        X = 'Abraham' ;
+        X = 'PereAbraham' ;
+        X = 'GrandPereAbraham' ;
+        X = 'GGPereAbraham' ;
+        X = 'GGGPereAbraham' ;
+
+    ?- ancetre(X,'Abraham').
+        X = 'PereAbraham' ;
+        X = 'GrandPereAbraham' ;
+        X = 'GGPereAbraham' ;
+        X = 'GGGPereAbraham' ;
+
+    ?- ancetre('Abraham',Y).
+        Y = 'Homer' ;
+        Y = 'Bart' ;
+        Y = 'Lisa' ;
+        Y = 'Maggie' ;
+
+    On peut voir que la fonction ancetre sert bien à voir les ancètres de la personne souhaitée, mais elle permet aussi de voir les descendants.  
+
+
+Exercice 5:
+1.
+    et(0,0,0).
+    et(1,0,0).
+    et(0,1,0).
+    et(1,1,1).
+
+    ou(0,0,0).
+    ou(1,0,1).
+    ou(0,1,1).
+    ou(1,1,1).
+
+    non(0,1).
+    non(1,0).
+
+2.
+    Tests:
+    ?- et(X,Y,1).
+        X = Y, Y = 1.
+
+    ?- et(0,0,R).
+        R = 0 ;
+
+    ?- et(X,Y,R).
+        X = Y, Y = R, R = 0 ;
+        X = 1, Y = R, R = 0 ;
+        X = R, R = 0, Y = 1 ;
+        X = Y, Y = R, R = 1.
+
+    ?- ou(0,Y,R).
+        Y = R, R = 0 ;
+        Y = R, R = 1.
+
+    ?- ou(1,Y,1).
+        Y = 0 ;
+        Y = 1.
+
+    ?- ou(X,Y,R).
+        X = Y, Y = R, R = 0 ;
+        X = R, R = 1, Y = 0 ;
+        X = 0, Y = R, R = 1 ;
+        X = Y, Y = R, R = 1.
+
+3.
+    xor(X,Y,Z):-non(Y,NY),et(X,NY,Z1),non(X,NX),et(NX,Y,Z2),ou(Z1,Z2,Z).
+
+    circuit(X,Y,Z) :-non(X,NX),non(Y,NY),ou(NX,NY,NAND),xor(NX,NAND,XOR),non(XOR,Z).
+
+4.
+    La requête permettant de construire la table de vérité du circuit est:
+    circuit(X,Y,Z).
+
+5.  
+    Tests:
+    ?- circuit(X,Y,R).
+        X = Y, Y = 0, R = 1 ;
+        X = 0, Y = R, R = 1 ;
+        X = 1, Y = R, R = 0 ;
+        X = Y, Y = R, R = 1 ;
+
+    ?- circuit(1,Y,R).
+        Y = R, R = 0 ;
+        Y = R, R = 1 ;
+
+    ?- circuit(0,Y,R).
+        Y = 0, R = 1 ;
+        Y = R, R = 1 ;
+
+    ?- circuit(X,1,R).
+        X = 0, R = 1 ;
+        X = R, R = 1 ;
+
+    ?- circuit(X,0,R).
+        X = 0, R = 1 ;
+        X = 1, R = 0 ;
+
+    ?- circuit(X,Y,1).
+        X = Y, Y = 0 ;
+        X = 0, Y = 1 ;
+        X = Y, Y = 1 ;
+
+    ?- circuit(X,Y,0).
+        X = 1, Y = 0 ;
+
+    ?- circuit(0,0,R).
+        R = 1 ;
+
+    ?- circuit(1,0,R).
+        R = 0 ;
+
+    ?- circuit(1,Y,0).
+        Y = 0 ;
+
+    ?- circuit(0,Y,1).
+        Y = 0 ;
+        Y = 1 ;
