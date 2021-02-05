@@ -3,61 +3,110 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from pathlib import Path    
 
+import resources
 
 class MainWindow(QMainWindow):
 	
 	def __init__(self):
 		super(MainWindow, self).__init__()
 		self.resize(500, 500)
+		self.initUI()
+	
+	def initUI(self):
+		self.setWindowTitle('notepad')
+		self.setWindowIcon(QIcon(':/notepad.png'))   
 
 		bar = self.menuBar()
 		fileMenu = bar.addMenu( "Fichier" )
+		toolbar = self.addToolBar('')
+
+		newAct = QAction(QIcon("new.png"), "new...", self )
+		newAct.setShortcut( QKeySequence("Ctrl+N" ) )
+		fileMenu.addAction(newAct)
+		toolbar.addAction(newAct)
+		newAct.triggered.connect( self.new )
 
 		newAct = QAction(QIcon("open.png"), "open...", self )
 		newAct.setShortcut( QKeySequence("Ctrl+O" ) )
-		#newAct.setToolTip("open")
-		#newAct.setStatusTip("open")
 		fileMenu.addAction(newAct)
+		toolbar.addAction(newAct)		
 		newAct.triggered.connect( self.open )
 
-		newAct2 = QAction(QIcon("save.png"), "save..", self )
-		newAct2.setShortcut( QKeySequence("Ctrl+S" ) )
-		#newAct2.setToolTip("save")
-		#newAct2.setStatusTip("save")
-		fileMenu.addAction(newAct2)
-		newAct2.triggered.connect( self.save )
+		newAct = QAction(QIcon("save.png"), "save..", self )
+		newAct.setShortcut( QKeySequence("Ctrl+S" ) )
+		fileMenu.addAction(newAct)
+		toolbar.addAction(newAct)
+		newAct.triggered.connect( self.save )
 
+		newAct = QAction(QIcon("quit.png"), "quit...", self )
+		newAct.setShortcut( QKeySequence("Ctrl+Q" ) )
+		fileMenu.addAction(newAct)
+		newAct.triggered.connect( self.quit )
+		
+		newAct = QAction(QIcon('copy.png'), 'copy', self)
+		newAct.setShortcut('Ctrl+C')
+		toolbar.addAction(newAct)
+		newAct.triggered.connect(self.copy)
 
-		newAct3 = QAction(QIcon("quit.png"), "quit...", self )
-		newAct3.setShortcut( QKeySequence("Ctrl+Q" ) )
-		#newAct3.setToolTip("quit")
-		#newAct3.setStatusTip("quit")
-		fileMenu.addAction(newAct3)
-		newAct3.triggered.connect( self.quit )
+		newAct = QAction(QIcon('cut.png'), 'cut', self)
+		newAct.setShortcut('Ctrl+X')
+		toolbar.addAction(newAct)
+		newAct.triggered.connect(self.cut)
+
+		newAct = QAction(QIcon('paste.png'), 'past', self)
+		newAct.setShortcut('Ctrl+V')
+		toolbar.addAction(newAct)
+		newAct.triggered.connect(self.paste)
+
+		self.statusBar().showMessage(' statusbar')
 
 		self.textEdit = QTextEdit ( self )
 		self.setCentralWidget( self.textEdit  )
 
+		finish = QAction("Quit", self)
+		finish.triggered.connect(self.closeEvent)
+
 
 	def open(self):
-		fileName = QFileDialog.getOpenFileName(self, "Open file", "", "*.html *.txt") 
+		fileName = QFileDialog.getOpenFileName(self, "Open file", "", "*.html") 
 		titre = Path(fileName[0]).name
 		if fileName:
 			with open(fileName[0], 'r') as f:
 				html = f.read()
-				print(html)
+				f.close()
 			self.textEdit.setHtml(html)
-		#print("Open...")
 
 	def save(self):
-		QFileDialog.getSaveFileName(self, "Save file", "", "*.txt") 
-
-		print("Save")		
+		fileName = QFileDialog.getSaveFileName(self, "Save file", "", "*.html") 
+		print (self.textEdit.toPlainText())
+		if fileName:
+			with open(fileName[0], 'w') as f:
+				f.write(self.textEdit.toHtml())
+				f.close()
 
 	def quit(self):
-		print("Quit")		
+		self.close()
 
+	def new(self):
+		bouton = QMessageBox.question(self, 'new', "Do you want to delete all not saved change and create a new document  ?", QMessageBox.Yes | QMessageBox.No )
+		if bouton == QMessageBox.Yes:
+			self.textEdit.setHtml("")
 
+	def closeEvent(self, event):
+			bouton = QMessageBox.question(self, 'quit', "Do you want to quit ?", QMessageBox.Yes | QMessageBox.No )
+			if bouton == QMessageBox.Yes:
+				event.accept()
+			else:
+				event.ignore()
+
+	def cut(self):
+		self.textEdit.cut()
+	
+	def copy(self):
+		self.textEdit.copy()
+
+	def paste(self):
+		self.textEdit.paste()
 
 def main(args):
 	app= QApplication(sys.argv)
