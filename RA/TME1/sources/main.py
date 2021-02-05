@@ -2,10 +2,12 @@
 
 import numpy as np
 import time
-from rbfn import RBFN
+# from rbfn import RBFN
 from lwr import LWR
 from line import Line
 from sample_generator import SampleGenerator
+
+import matplotlib.pyplot as plt
 
 
 class Main:
@@ -110,8 +112,9 @@ class Main:
         model.plot(self.x_data, self.y_data)
 
 if __name__ == '__main__':
+    print("hello")
     m = Main()
-    # m.approx_linear_batch()
+    m.approx_linear_batch()
     # m.approx_rbfn_batch()
-    m.approx_rbfn_iterative()
-    m.approx_lwr_batch()
+    # m.approx_rbfn_iterative()
+    # m.approx_lwr_batch()
