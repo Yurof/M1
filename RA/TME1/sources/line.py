@@ -40,10 +40,10 @@ class Line:
         slope, intercept = self.theta
 
         r_value = np.corrcoef(x_data.transpose(),y_data)[0][1]
-        print("slope ef:", str(slope))
-        print("intercept fezef:", str(intercept))
-        print("r_value fegbv:", str(r_value))
-        print("efzfezef",len(x_data))
+        print("slope :", str(slope))
+        print("intercept :", str(intercept))
+        print("r_value :", str(r_value))
+
         # ----------------------#
         # # Training Algorithm ##
         # ----------------------#
@@ -53,15 +53,25 @@ class Line:
         x_data = np.array([x_data]).transpose()
         y_data = np.array(y_data)
         x = np.hstack((x_data, np.ones((x_data.shape[0], 1))))
-        print("-----")
-        print(x.shape)
 
         #TODO: Fill this
-        slope, intercept = np.dot(np.dot(np.linalg.inv(coef*np.eye(x.shape[1]) + np.dot(x.transpose(), x)), x.transpose()), y_data)
+        print("coef",coef)
+
+        self.theta = np.dot(np.dot(np.linalg.inv(coef*np.eye(x.shape[1]) + np.dot(x.transpose(), x)), x.transpose()), y_data)
+        slope, intercept = self.theta 
+
         r_value = np.corrcoef(x_data.transpose(),y_data)[0][1]
+
         print("slope :", str(slope))
         print("intercept :", str(intercept))
         print("r_value :", str(r_value))
+        
+        residual=0
+        for k in range(len(y_data)):
+            residual+=np.linalg.norm(x_data[k]*slope+intercept- y_data[k])
+        
+        print("residual",residual)
+        return residual
 
     # ----------------------#
     # # Training Algorithm ##
@@ -70,19 +80,23 @@ class Line:
     def train_from_stats(self, x_data, y_data):
         # Finds the Least Square optimal weights: python provided version
         slope, intercept, r_value, _, _ = stats.linregress(x_data, y_data)
-        print(slope)
-        print(intercept)
-        print(r_value)
+
         #TODO: Fill this
+        self.theta = slope, intercept
+        print("slope :", str(slope))
+        print("intercept :", str(intercept))
+        print("r_value :", str(r_value))
 
     # -----------------#
     # # Plot function ##
     # -----------------#
 
-    def plot(self, x_data, y_data):
+    def plot(self, x_data, y_data, title=""):
         xs = np.linspace(0.0, 1.0, 1000)
         z = self.f(xs)
 
         plt.plot(x_data, y_data, 'o', markersize=3, color='lightgreen')
         plt.plot(xs, z, lw=2, color='red')
+        plt.title(title)
         plt.show()
+        

@@ -24,6 +24,7 @@ class RBFN(Gaussians):
         if not hasattr(theta, "__len__"):
             theta = self.theta
         value = np.dot(self.phi_output(x).transpose(), theta.transpose())
+        #print("hhhhhhhhhhhhhh",value.shape, value)
         return value
 
     def feature(self, x, idx):
@@ -48,22 +49,28 @@ class RBFN(Gaussians):
     def train_ls(self, x_data, y_data):
         x = np.array(x_data)
         y = np.array(y_data)
-        X = self.phi_output(x)
-
+        X = self.phi_output(x).transpose()
+    
         #TODO: Fill this
+        self.theta = np.dot(np.dot(np.linalg.inv( np.dot(X.transpose(), X) ), X.transpose()), y_data)
 
     # ------ batch least squares (calculation approach) ---------
-    def train_ls2(self, x_data, y_data):
+    def train_ls2(self, x_data, y_data):     
         a = np.zeros(shape=(self.nb_features, self.nb_features))
         b = np.zeros(self.nb_features)
+
         for i in range(len(x_data)):
-            
-        #TODO: Fill this
+            #TODO: Fill this
+            b+= np.dot(self.phi_output(x_data[i]), y_data[i])[:,0]
+            a+= np.dot(self.phi_output(x_data[i]), self.phi_output(x_data[i]).transpose())
+        
+        self.theta = np.linalg.solve(a,b)
 
     # -------- gradient descent -----------------
     def train_gd(self, x, y, alpha):
-            
         #TODO: Fill this
+        phi_x = self.phi_output(x)[:,0]
+        self.theta = self.theta  + alpha*np.dot(y-np.dot(phi_x,self.theta),phi_x)
 
     # -------- recursive least squares -----------------
     def train_rls(self, x, y):
@@ -100,11 +107,12 @@ class RBFN(Gaussians):
     # # Plot function ##
     # -----------------#
 
-    def plot(self, x_data, y_data):
+    def plot(self, x_data, y_data, title=""):
         xs = np.linspace(0.0, 1.0, 1000)
         z = []
         for i in xs:
-            z.append(self.f(i))
+            var =self.f(i)
+            z.append(var)
 
         z2 = []
         for i in range(self.nb_features):
@@ -112,9 +120,13 @@ class RBFN(Gaussians):
             for j in xs:
                 temp.append(self.feature(j, i))
             z2.append(temp)
+        
+        plt.plot(xs, z, lw=3, color='red' , label='model')
+        plt.plot(x_data, y_data, 'o', markersize=3, color='lightgreen',label='data')
 
-        plt.plot(x_data, y_data, 'o', markersize=3, color='lightgreen')
-        plt.plot(xs, z, lw=3, color='red')
-        for i in range(self.nb_features):
-            plt.plot(xs, z2[i])
+        
+        #for i in range(self.nb_features):
+            #plt.plot(xs, z2[i])
+        plt.title(title)
+        plt.legend(loc='best')
         plt.show()

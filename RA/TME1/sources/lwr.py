@@ -75,7 +75,7 @@ class LWR(Gaussians):
                 self.theta[i, k] = result[i, 0]
 
 
-    def plot(self, x_data, y_data):
+    def plot(self, x_data, y_data, title=""):
         xs = np.linspace(0.0, 1.0, 1000)
         z = self.f(xs)
 
@@ -89,4 +89,5 @@ class LWR(Gaussians):
             for j in xstmp:
                 z2.append(self.feature(j, i))
             plt.plot(xstmp, z2, lw=2, color='blue', ls='-')
+        plt.title(title)
         plt.show()

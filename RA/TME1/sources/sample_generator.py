@@ -4,6 +4,8 @@ import math
 import numpy as np
 
 class SampleGenerator:
+    np.random.seed(1)
+
     def __init__(self):
         self.c0 = np.random.random()*2
         self.c1 = -np.random.random()*4

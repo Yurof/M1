@@ -4,6 +4,8 @@ from PyQt5.QtGui import *
 from pathlib import Path    
 
 import resources
+from PyQt5.uic import loadUi
+
 
 class MainWindow(QMainWindow):
 	
@@ -17,7 +19,8 @@ class MainWindow(QMainWindow):
 		self.setWindowIcon(QIcon(':/notepad.png'))   
 
 		bar = self.menuBar()
-		fileMenu = bar.addMenu( "Fichier" )
+		fileMenu = bar.addMenu( "File" )
+		fileMenu2 = bar.addMenu( "Help" )
 		toolbar = self.addToolBar('')
 
 		newAct = QAction(QIcon("new.png"), "new...", self )
@@ -58,6 +61,10 @@ class MainWindow(QMainWindow):
 		toolbar.addAction(newAct)
 		newAct.triggered.connect(self.paste)
 
+		newAct = QAction(QIcon("about.png"), "About...", self )
+		fileMenu2.addAction(newAct)
+		newAct.triggered.connect( self.about )
+
 		self.statusBar().showMessage(' statusbar')
 
 		self.textEdit = QTextEdit ( self )
@@ -65,6 +72,7 @@ class MainWindow(QMainWindow):
 
 		finish = QAction("Quit", self)
 		finish.triggered.connect(self.closeEvent)
+
 
 
 	def open(self):
@@ -78,7 +86,7 @@ class MainWindow(QMainWindow):
 
 	def save(self):
 		fileName = QFileDialog.getSaveFileName(self, "Save file", "", "*.html") 
-		print (self.textEdit.toPlainText())
+		#print (self.textEdit.toPlainText())
 		if fileName:
 			with open(fileName[0], 'w') as f:
 				f.write(self.textEdit.toHtml())
@@ -107,6 +115,17 @@ class MainWindow(QMainWindow):
 
 	def paste(self):
 		self.textEdit.paste()
+
+ 
+	def about(self):
+			dialog = about(self)
+			dialog.exec()
+
+class about(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        loadUi("about.ui", self)
+
 
 def main(args):
 	app= QApplication(sys.argv)
