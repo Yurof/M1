@@ -1,9 +1,10 @@
+#KADHI YOUSSEF & LIM VINCENT
 import random
 import numpy as np
 from maze import build_maze
 from toolbox import random_policy
 import matplotlib.pyplot as plt
-
+from chrono import Chrono
 
 def create_maze(width, height, ratio):
     size = width * height
@@ -26,10 +27,8 @@ def create_maze(width, height, ratio):
 def get_policy_from_q(q):
     # Outputs a policy given the action values
     # TODO: fill this
-    policy = np.zeros(q.shape[0])
-    for s in range(q.shape[0]):
-        policy[s]=np.argmax(q[s,:])
-    return policy
+    return np.argmax(q,axis=1)
+
 
 
 def get_policy_from_v(mdp, v):
@@ -83,10 +82,10 @@ def evaluate_one_step_v(mdp, v, policy):
             # Process sum of the values of the neighbouring states
             summ = 0
             for y in range(mdp.nb_states):
-                summ = summ + mdp.P[x, policy[x], y] * v[y]
-            v_temp.append(mdp.r[x, policy[x]] + mdp.gamma * summ)
+                summ = summ + mdp.P[x, int(policy[x]), y] * v[y]
+            v_temp.append(mdp.r[x, int(policy[x])] + mdp.gamma * summ)
         else:  # if the state is final, then we only take the reward into account
-            v_temp.append(mdp.r[x, policy[x]])
+            v_temp.append(mdp.r[x, int(policy[x])])
 
         # Select the highest state value among those computed
         v_new[x] = np.max(v_temp)
@@ -112,44 +111,18 @@ def evaluate_one_step_q(mdp, q, policy):
     # TODO: fill this
     # Corresponds to one application of the Bellman Operator
     q_new = np.zeros((mdp.nb_states, mdp.action_space.size))  # initial action values are set to 0
-    for x in range(mdp.nb_states):  # for each state x
-        # Compute the value of the state x for each action u of the MDP action space
-        q_temp = []
-        if x not in mdp.terminal_states:
-            # Process sum of the values of the neighbouring states
-            summ = 0
-            #print((mdp.nb_states))
-            for y in range(mdp.nb_states):
-                #print(x,y,policy)
-                summ = summ + mdp.P[x, :, y] * q[y, int(policy[y])]
-            q_temp.append(mdp.r[x,:] + mdp.gamma * summ)
-        else:  # if the state is final, then we only take the reward into account
-            #print("else")
-            q_temp.append(mdp.r[x, :])
-
-        # Select the highest state value among those computed
-        q_new[x] = np.max(q_temp)
+    for x in range(mdp.nb_states):
+        for u in mdp.action_space.actions:
+            if x in mdp.terminal_states:
+                q_new[x, :] = mdp.r[x, u]
+            else:
+                summ = 0
+                for y in range(mdp.nb_states):
+                    summ += mdp.P[x, u, y] * q[y, int(policy[y])]
+                q_new[x, u] = mdp.r[x, u] + mdp.gamma * summ
     return q_new
-"""
-def evaluate_one_step_q(mdp, q, policy):
-    # Outputs the state value function after one step of policy evaluation
-    q_new = np.zeros((mdp.nb_states, mdp.action_space.size))  # initial action values are set to 0
-    for x in range(mdp.nb_states):  # for each state x
-        # Compute the value of the state x for each action u of the MDP action space
-        q_temp = []
-        if x not in mdp.terminal_states:
-            # Process sum of the values of the neighbouring states
-            summ = 0
-            for y in range(mdp.nb_states):
-                summ = summ + mdp.P[x, :, y] * q[y,policy[y].astype("int")]
-            q_temp.append(mdp.r[x, :] + mdp.gamma * summ)
-        else:  # if the state is final, then we only take the reward into account
-            q_temp.append(mdp.r[x, :])
 
-        # Select the highest state value among those computed
-        q_new[x] = np.max(q_temp)
-    return q_new
-"""
+
 def evaluate_q(mdp, policy):
     # Outputs the state value function of a policy
     # TODO: fill this
@@ -180,7 +153,9 @@ def value_iteration_v(mdp, render=True):
     if render:
         mdp.new_render()
 
+    i=0
     while not stop:
+        i+=1
         v_old = v.copy()
         if render:
             mdp.render(v)
@@ -210,6 +185,7 @@ def value_iteration_v(mdp, render=True):
         policy = get_policy_from_v(mdp, v)
         mdp.render(v, policy)
 
+    print("value_iteration_v: ",i, "stepq")
     return v, v_list
 
 # ------------------------- Value Iteration with the Q function ----------------------------#
@@ -225,7 +201,9 @@ def value_iteration_q(mdp, render=True):
     if render:
         mdp.new_render()
 
+    i=0
     while not stop:
+        i+=1
         qold = q.copy()
 
         if render:
@@ -249,6 +227,8 @@ def value_iteration_q(mdp, render=True):
 
     if render:
         mdp.render(q)
+
+    print("value_iteration_q: ",i, "steps")
     return q, q_list
 
 
@@ -265,7 +245,9 @@ def policy_iteration_q(mdp, render=True):  # policy iteration over the q functio
     if render:
         mdp.new_render()
 
+    i=0
     while not stop:
+        i+=1
         qold = q.copy()
 
         if render:
@@ -274,7 +256,6 @@ def policy_iteration_q(mdp, render=True):  # policy iteration over the q functio
 
         # Step 1 : Policy evaluation
         # TODO: fill this
-        
         q = evaluate_q(mdp,policy)
 
         #policy = get_policy_from_q(q)
@@ -288,9 +269,11 @@ def policy_iteration_q(mdp, render=True):  # policy iteration over the q functio
         if (np.linalg.norm(q - qold)) <= 0.01:
             stop = True
         q_list.append(np.linalg.norm(q))
+    
+    print("policy_iteration_q",i,"steps")
 
     if render:
-        mdp.render(q, get_policy_from_q(q))
+        mdp.render(q, policy)
     return q, q_list
 
 
@@ -308,7 +291,10 @@ def policy_iteration_v(mdp, render=True):
     if render:
         mdp.new_render()
 
+    i = 0
+    op = 0
     while not stop:
+        i+=1
         vold = v.copy()
         # Step 1 : Policy Evaluation
         # TODO: fill this
@@ -320,13 +306,14 @@ def policy_iteration_v(mdp, render=True):
 
         # Step 2 : Policy Improvement
         # TODO: fill this
-        policy = improve_policy_from_v(mdp,v,policy)
-
+        #policy = improve_policy_from_v(mdp,v,policy)
+        policy = get_policy_from_v(mdp, v)
+  
         # Check convergence
         if (np.linalg.norm(v - vold)) < 0.01:
             stop = True
         v_list.append(np.linalg.norm(v))
-
+    print("policy_iteration_v",i," steps")
     if render:
         mdp.render(v)
         mdp.plotter.render_pi(policy)
@@ -336,10 +323,18 @@ def policy_iteration_v(mdp, render=True):
 
 
 def plot_convergence_vi_pi(m, render):
+    ch = Chrono()
     v, v_list1 = value_iteration_v(m, render)
+    ch.stop()
+    ch = Chrono()
     q, q_list1 = value_iteration_q(m, render)
+    ch.stop()
+    ch = Chrono()
     v, v_list2 = policy_iteration_v(m, render)
+    ch.stop()
+    ch = Chrono()
     q, q_list2 = policy_iteration_q(m, render)
+    ch.stop()
 
     plt.plot(range(len(v_list1)), v_list1, label='value_iteration_v')
     plt.plot(range(len(q_list1)), q_list1, label='value_iteration_q')
