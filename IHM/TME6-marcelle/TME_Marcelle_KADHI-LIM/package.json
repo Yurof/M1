@@ -1,0 +1,31 @@
+{
+  "name": "test",
+  "description": "A Marcelle Application",
+  "version": "0.0.0",
+  "main": "public/bundle.js",
+  "keywords": [
+    "marcelle"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Yurof",
+    "email": "48862755+Yurof@users.noreply.github.com"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@marcellejs/core": "^0.2.0",
+    "svelte": "^3.35.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.12.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-svelte3": "^2.7.3",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.15.0",
+    "vite": "^2.0.4",
+    "rollup-plugin-svelte": "^7.1.0"
+  }
+}

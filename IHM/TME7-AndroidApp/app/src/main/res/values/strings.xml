@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Sous</string>
+    <string name="valeur_label">valeur</string>
+    <string name="valeur_default_label">valeur à convertir (default : €)</string>
+    <string name="taux_echange_label">Taux d\'échange</string>
+    <string name="resultat_label">Résultat</string>
+    <string name="button_convert">Convertir</string>
+    <string name="currency_euros">€</string>
+    <string name="currency_livres">£</string>
+    <string name="currency_dollars">$</string>
+    <string name="from_label">Convert from :</string>
+    <string name="to_label">To :</string>
+    <string name="select_currency">Selectionner monnaie</string>
+</resources>
