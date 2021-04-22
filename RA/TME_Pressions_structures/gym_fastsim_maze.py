@@ -56,6 +56,10 @@ def eval_nn(genotype, nbstep=2000, render=False, name="", nn_size=[5, 2, 2, 10])
     # Remarque: les positions et distances sont arrondis à 2 décimales pour éviter le surapprentissage et le maintien dans le front de pareto de solutions ne différant que
     # de décimales plus éloignées (variante FIT+NS)
     rpos = [round(x, 2) for x in pos]
+#    if round(dist_obj, 2) == 0:
+#        return 0, rpos
+#    else:
+#        return 1, rpos
     return round(dist_obj, 2), rpos
 
 
@@ -259,7 +263,7 @@ if (__name__ == "__main__"):
                         help='number of individuals to generate')
     parser.add_argument('--res_dir', type=str, default="res",
                         help='basename of the directory in which to put the results')
-    parser.add_argument('--variant', type=str, default="FIT", choices=['FIT', 'NS', 'FIT+NS'],
+    parser.add_argument('--variant', type=str, default="NS", choices=['FIT', 'NS', 'FIT+NS'],
                         help='variant to consider')
     parser.add_argument('--hidden_layers', type=int, default=2,
                         help='number of hidden layers of the NN controller')
